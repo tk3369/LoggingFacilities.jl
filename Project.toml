@@ -1,6 +1,6 @@
 name = "LoggingFacilities"
 uuid = "7567bd1e-91b2-4c89-85ad-d5bd41b820dc"
-authors = ["Tom Kwong <tom15375@gmail.com> and contributors"]
+authors = ["Tom Kwong <tk3369@gmail.com> and contributors"]
 version = "0.1.0"
 
 [deps]
