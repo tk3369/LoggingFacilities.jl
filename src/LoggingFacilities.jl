@@ -12,7 +12,8 @@ export logger
 export SimplestLogger
 export InjectByPrependingToMessage, InjectByAddingToKwargs
 
+include("types.jl")
 include("formats.jl")
-include("simple.jl")
+include("simplest_logger.jl")
 
 end #module
