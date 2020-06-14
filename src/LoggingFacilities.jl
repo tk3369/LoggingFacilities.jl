@@ -12,7 +12,6 @@ export logger
 export SimplestLogger
 export InjectByPrependingToMessage, InjectByAddingToKwargs
 
-include("types.jl")
 include("formats.jl")
 include("simplest_logger.jl")
 
