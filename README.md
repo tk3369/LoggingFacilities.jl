@@ -9,9 +9,9 @@ Sink
 - `SimplestLogger`, which is simpler than the SimpleLogger from Base :-)
 
 Logging Formats
-- `TimestampLoggingFormat`: either prepend to `message` string or added as a variables
-- `OneLineLoggingFormat`: append `variable=value` pairs to the `message` string
-- `JSONLoggingFormat`: format log as JSON string
+- `TimestampLoggingTransformer`: either prepend to `message` string or added as a variables
+- `OneLineLoggingTransformer`: append `variable=value` pairs to the `message` string
+- `JSONLoggingTransformer`: format log as JSON string
 
 ## Usage
 
@@ -20,7 +20,7 @@ Use the `logger` function to create new Transformer logger with the desired form
 ### Logging with timestamp
 
 ```julia
-julia> ts_fmt = TimestampLoggingFormat("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage());
+julia> ts_fmt = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage());
 
 julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
            @info "hey there"
@@ -31,7 +31,7 @@ julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
 ### Logging everything in a single line
 
 ```julia
-julia> oneline_fmt = OneLineLoggingFormat();
+julia> oneline_fmt = OneLineLoggingTransformer();
 
 julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
            x = 1
@@ -44,8 +44,8 @@ julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
 ### Logging JSON string
 
 ```julia
-js_fmt = JSONLoggingFormat(2)
-ts_fmt = TimestampLoggingFormat("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
+js_fmt = JSONLoggingTransformer(2)
+ts_fmt = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
 json_logger = logger(logger(SimplestLogger(), js_fmt), ts_fmt)
 ```
 

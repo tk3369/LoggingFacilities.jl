@@ -1,34 +1,34 @@
-# Logging Formats - utilize TransformerLogger to tweak ouptut
+# Logging Transformers - utilize TransformerLogger to tweak ouptut
 
-abstract type AbstractLoggingFormat end
+abstract type AbstractLoggingTransformer end
 
 """
-    logger(::AbstractLogger, ::AbstractLoggingFormat)
+    logger(::AbstractLogger, ::AbstractLoggingTransformer)
 
-Returns a logger that implements the specific logging format e.g.
-- [`TimestampLoggingFormat`](@ref)
-- [`OneLineLoggingFormat`](@ref)
-- [`JSONLoggingFormat`](@ref)
+Returns a logger that implements the specific logging Transformer e.g.
+- [`TimestampLoggingTransformer`](@ref)
+- [`OneLineLoggingTransformer`](@ref)
+- [`JSONLoggingTransformer`](@ref)
 """
-function logger(::AbstractLogger, ::AbstractLoggingFormat)
+function logger(::AbstractLogger, ::AbstractLoggingTransformer)
 end
 
 # --------------------------------------------------------------------------------
-# TimestampLoggingFormat
+# TimestampLoggingTransformer
 
 abstract type InjectLocation end
 struct InjectByPrependingToMessage <: InjectLocation end
 struct InjectByAddingToKwargs <: InjectLocation end
 
-struct TimestampLoggingFormat{T <: DateFormat, S <: InjectLocation}
+struct TimestampLoggingTransformer{T <: DateFormat, S <: InjectLocation}
     date_format::T
     location::S
 end
 
-TimestampLoggingFormat(fmt::AbstractString, location) =
-    TimestampLoggingFormat(DateFormat(fmt), location)
+TimestampLoggingTransformer(fmt::AbstractString, location) =
+    TimestampLoggingTransformer(DateFormat(fmt), location)
 
-function logger(L::AbstractLogger, fmt::TimestampLoggingFormat)
+function logger(L::AbstractLogger, fmt::TimestampLoggingTransformer)
     return TransformerLogger(L) do log
         formatted_datetime = Dates.format(now(), fmt.date_format)
         inject_log(log, formatted_datetime, fmt.location)
@@ -45,12 +45,12 @@ function inject_log(log, ts::AbstractString, location::InjectByAddingToKwargs)
 end
 
 # --------------------------------------------------------------------------------
-# OneLineLoggingFormat
+# OneLineLoggingTransformer
 
-struct OneLineLoggingFormat
+struct OneLineLoggingTransformer
 end
 
-function logger(L::AbstractLogger, fmt::OneLineLoggingFormat)
+function logger(L::AbstractLogger, fmt::OneLineLoggingTransformer)
     return TransformerLogger(L) do log
         kw_string = join(["$(kv[1])=$(kv[2])" for kv in log.kwargs], " ")
         return merge(log, (;message = "$(log.message) $kw_string", kwargs = ()))
@@ -58,19 +58,19 @@ function logger(L::AbstractLogger, fmt::OneLineLoggingFormat)
 end
 
 # --------------------------------------------------------------------------------
-# JSONLoggingFormat
+# JSONLoggingTransformer
 
-struct JSONLoggingFormat
+struct JSONLoggingTransformer
     indent::Union{Nothing,Int}
 end
 
-function logger(L::AbstractLogger, fmt::JSONLoggingFormat)
+function logger(L::AbstractLogger, fmt::JSONLoggingTransformer)
     return TransformerLogger(L) do log
         dct = Dict{Any,Any}(log.kwargs)
         push!(dct, :message => log.message)
         push!(dct, :level => string(log.level))
         kw_string = fmt.indent === nothing ? json(dct) : json(dct, fmt.indent)
-        return merge(log, (;message = "$kw_string", kwargs = ()))
+        return merge(log, (;message = chomp(kw_string), kwargs = ()))
     end
 end
 

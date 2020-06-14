@@ -1,35 +1,55 @@
 using LoggingFacilities
 using Logging
+using JSON
 using Test
-
-# TODO needs work here
 
 @testset "LoggingFacilities.jl" begin
 
-    ts_fmt = TimestampLoggingFormat("Y-m-d H:M:S", InjectByPrependingToMessage());
-    with_logger(logger(ConsoleLogger(), ts_fmt)) do
-        @info "hey there"
+    # The SimplestLogger should log nothing but the message itself
+    let
+        io = IOBuffer()
+        with_logger(SimplestLogger(io)) do
+            @info "hey there"
+        end
+        @test String(take!(io)) |> chomp == "hey there"
     end
 
-    oneline_fmt = OneLineLoggingFormat();
-    with_logger(logger(ConsoleLogger(), oneline_fmt)) do
-        x = 1
-        y = "abc"
-        @info "hey there" x y
+    # Validate timestamp is printed at the beginning of line
+    let
+        io = IOBuffer()
+        ts_fmt = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage())
+        with_logger(logger(SimplestLogger(io), ts_fmt)) do
+            @info "hey there"
+        end
+        logs = String(take!(io)) |> chomp
+        @test match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", logs) !== nothing
     end
 
-    js_fmt = JSONLoggingFormat(2)
-    ts_fmt = TimestampLoggingFormat("Y-m-d H:M:S", InjectByAddingToKwargs())
-    json_logger = logger(logger(SimplestLogger(), js_fmt), ts_fmt)
-    with_logger(json_logger) do
-        x = 1
-        y = "abc"
-        z = 36.55
-        @info "hey" x y z
-        @warn "blah"
-        @error "cool"
+    # Validate there's only a single line printed
+    let
+        io = IOBuffer()
+        oneline_fmt = OneLineLoggingTransformer()
+        with_logger(logger(SimplestLogger(io), oneline_fmt)) do
+            x = 1
+            y = "abc"
+            @info "hey there" x y
+        end
+        logs = String(take!(io)) |> chomp
+        @test findall("\n", logs) |> length == 0
     end
 
-    @test 1 == 1
-
+    # Verify valid JSON
+    let
+        io = IOBuffer()
+        js_fmt = JSONLoggingTransformer(2)
+        json_logger = logger(SimplestLogger(io), js_fmt)
+        with_logger(json_logger) do
+            x = 1
+            y = "abc"
+            z = 36.55
+            @info "hey" x y z
+        end
+        logs = String(take!(io))
+        @test JSON.Parser.parse(logs) isa Any
+    end
 end
