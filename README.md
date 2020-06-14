@@ -17,15 +17,15 @@ Use the `logger` function to create new Transformer logger with the desired form
 ### Logging with timestamp
 
 ```julia
-julia> ts_fmt = TimestampLoggingFormat("Y-m-d H:M:S", InjectByPrependingToMessage());
+julia> ts_fmt = TimestampLoggingFormat("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage());
 
 julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
            @info "hey there"
        end
-[ Info: 2020-5-25 1:39:57 hey there
+[ Info: 2020-06-13 21:39:13 hey there
 ```
 
-### Logging everything in a single ling
+### Logging everything in a single line
 
 ```julia
 julia> oneline_fmt = OneLineLoggingFormat();
@@ -42,7 +42,7 @@ julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
 
 ```julia
 js_fmt = JSONLoggingFormat(2)
-ts_fmt = TimestampLoggingFormat("Y-m-d H:M:S", InjectByAddingToKwargs())
+ts_fmt = TimestampLoggingFormat("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
 json_logger = logger(logger(SimplestLogger(), js_fmt), ts_fmt)
 ```
 
@@ -57,8 +57,16 @@ julia> with_logger(json_logger) do
            @warn "blah"
            @error "cool"
        end
+julia> with_logger(json_logger) do
+           x = 1
+           y = "abc"
+           z = 36.55
+           @info "hey" x y z
+           @warn "blah"
+           @error "cool"
+       end
 {
-  "timestamp": "2020-5-25 1:37:48",
+  "timestamp": "2020-06-13 21:40:30",
   "level": "Info",
   "y": "abc",
   "message": "hey",
@@ -67,13 +75,13 @@ julia> with_logger(json_logger) do
 }
 
 {
-  "timestamp": "2020-5-25 1:37:48",
+  "timestamp": "2020-06-13 21:40:30",
   "level": "Warn",
   "message": "blah"
 }
 
 {
-  "timestamp": "2020-5-25 1:37:48",
+  "timestamp": "2020-06-13 21:40:30",
   "level": "Error",
   "message": "cool"
 }
