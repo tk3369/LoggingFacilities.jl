@@ -58,8 +58,8 @@ using Test
         io = IOBuffer()
         js_trans = JSONLoggingTransformer(indent = 2)
         ts_trans = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
-        json_logger = logger(SimplestLogger(io), ts_trans, js_trans)
-        with_logger(json_logger) do
+        my_logger = logger(SimplestLogger(io), ts_trans, js_trans)
+        with_logger(my_logger) do
             x = 1
             y = "abc"
             z = 36.55
