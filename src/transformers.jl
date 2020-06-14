@@ -3,15 +3,20 @@
 abstract type AbstractLoggingTransformer end
 
 """
-    logger(::AbstractLogger, ::AbstractLoggingTransformer)
+    logger(::AbstractLogger, transformer, [transformer2, ...])
 
-Returns a logger that implements the specific logging Transformer e.g.
+Returns a logger that uses the specified logging transformers.  The transformers
+are applied in the same order that it is specified.
+
+See also:
 - [`TimestampLoggingTransformer`](@ref)
 - [`OneLineLoggingTransformer`](@ref)
 - [`JSONLoggingTransformer`](@ref)
 """
-function logger(::AbstractLogger, ::AbstractLoggingTransformer)
-end
+logger
+
+# chain transformers
+logger(L, args...) = logger(logger(L, args[end]), args[1:end-1]...)
 
 # --------------------------------------------------------------------------------
 # TimestampLoggingTransformer
@@ -36,10 +41,12 @@ function logger(L::AbstractLogger, fmt::TimestampLoggingTransformer)
 end
 
 function inject_log(log, ts::AbstractString, location::InjectByPrependingToMessage)
+    # println("Applying TimestampLoggingTransformer: InjectByPrependingToMessage")
     return merge(log, (; message = "$ts $(log.message)"))
 end
 
 function inject_log(log, ts::AbstractString, location::InjectByAddingToKwargs)
+    # println("Applying TimestampLoggingTransformer: InjectByAddingToKwargs")
     updated_kwargs = (:timestamp => ts, log.kwargs...)
     return merge(log, (; kwargs = updated_kwargs))
 end
@@ -52,6 +59,7 @@ end
 
 function logger(L::AbstractLogger, fmt::OneLineLoggingTransformer)
     return TransformerLogger(L) do log
+        # println("Applying OneLineLoggingTransformer")
         kw_string = join(["$(kv[1])=$(kv[2])" for kv in log.kwargs], " ")
         return merge(log, (;message = "$(log.message) $kw_string", kwargs = ()))
     end
@@ -60,12 +68,13 @@ end
 # --------------------------------------------------------------------------------
 # JSONLoggingTransformer
 
-struct JSONLoggingTransformer
-    indent::Union{Nothing,Int}
+Base.@kwdef struct JSONLoggingTransformer
+    indent::Union{Nothing,Int} = nothing
 end
 
 function logger(L::AbstractLogger, fmt::JSONLoggingTransformer)
     return TransformerLogger(L) do log
+        # println("Applying JSONLoggingTransformer")
         dct = Dict{Any,Any}(log.kwargs)
         push!(dct, :message => log.message)
         push!(dct, :level => string(log.level))

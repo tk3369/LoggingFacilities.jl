@@ -44,7 +44,7 @@ julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
 ### Logging JSON string
 
 ```julia
-js_fmt = JSONLoggingTransformer(2)
+js_fmt = JSONLoggingTransformer(indent = 2)
 ts_fmt = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
 json_logger = logger(logger(SimplestLogger(), js_fmt), ts_fmt)
 ```
