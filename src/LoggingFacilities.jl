@@ -7,12 +7,12 @@ using JSON
 
 using Logging: Info
 
-export TimestampLoggingFormat, OneLineLoggingFormat, JSONLoggingFormat
+export TimestampLoggingTransformer, OneLineLoggingTransformer, JSONLoggingTransformer
 export logger
 export SimplestLogger
 export InjectByPrependingToMessage, InjectByAddingToKwargs
 
-include("formats.jl")
-include("simple.jl")
+include("transformers.jl")
+include("simplest_logger.jl")
 
 end #module
