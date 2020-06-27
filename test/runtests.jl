@@ -34,7 +34,7 @@ using Test
             y = "abc"
             @info "hey there" x y
         end
-        logs = String(take!(io)) |> chomp
+        logs = String(take!(io)) |> chomp |> String
         @test findall("\n", logs) |> length == 0
     end
 
