@@ -3,6 +3,8 @@
 
 The most simplistic logger for logging all messages with level greater than or equal to
 `min_level` to `stream`.
+
+NOTE: this logger does not output log level.
 """
 struct SimplestLogger <: AbstractLogger
     stream::IO
