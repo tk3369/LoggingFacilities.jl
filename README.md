@@ -44,49 +44,28 @@ julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
 ### Logging JSON string
 
 ```julia
-js_fmt = JSONLoggingTransformer(indent = 2)
-ts_fmt = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
-json_logger = logger(logger(SimplestLogger(), js_fmt), ts_fmt)
+json_logger = logger(
+                SimplestLogger(),
+                TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs()),
+                JSONLoggingTransformer(indent = 2))
 ```
 
 _Voila!_
 
 ```julia
 julia> with_logger(json_logger) do
-           x = 1
-           y = "abc"
-           z = 36.55
-           @info "hey" x y z
-           @warn "blah"
-           @error "cool"
-       end
-julia> with_logger(json_logger) do
-           x = 1
-           y = "abc"
-           z = 36.55
-           @info "hey" x y z
-           @warn "blah"
-           @error "cool"
+           @info "hey"
+           @info "great!"
        end
 {
-  "timestamp": "2020-06-13 21:40:30",
+  "timestamp": "2020-06-27 21:45:00",
   "level": "Info",
-  "y": "abc",
-  "message": "hey",
-  "z": 36.55,
-  "x": 1
+  "message": "hey"
 }
-
 {
-  "timestamp": "2020-06-13 21:40:30",
-  "level": "Warn",
-  "message": "blah"
-}
-
-{
-  "timestamp": "2020-06-13 21:40:30",
-  "level": "Error",
-  "message": "cool"
+  "timestamp": "2020-06-27 21:45:01",
+  "level": "Info",
+  "message": "great!"
 }
 ```
 
