@@ -7,7 +7,7 @@ using JSON
 
 using Logging: Info
 
-export TimestampLoggingTransformer, OneLineLoggingTransformer, JSONLoggingTransformer
+export TimestampTransform, OneLineTransform, JSONTransform, LevelAsVarTransform
 export logger
 export SimplestLogger
 export InjectByPrependingToMessage, InjectByAddingToKwargs

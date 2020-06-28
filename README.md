@@ -3,16 +3,18 @@
 
 # LoggingFacilities
 
-This package contains some general logging facilities.  It uses the [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl) 
+This package contains some general logging facilities.
+It uses the [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl)
 framework for building composable loggers.
 
 Sink
 - `SimplestLogger`, which is simpler than the SimpleLogger from Base :-)
 
-Logging Formats
-- `TimestampLoggingTransformer`: prepend timestamp to `message` string or add to the variables list
-- `OneLineLoggingTransformer`: convert variables as `variable=value` and append to the `message` string
-- `JSONLoggingTransformer`: reformat log message as a JSON record
+Transforms
+- `TimestampTransform`: prepend timestamp to `message` string or add to the variables list
+- `OneLineTransform`: convert variables as `variable=value` and append to the `message` string
+- `LevelToVarTransform`: copy the level string to the variable list
+- `JSONTransform`: reformat log message as a JSON record
 
 ## Usage
 
@@ -21,7 +23,7 @@ Use the `logger` function to create new Transformer logger with the desired form
 ### Logging with timestamp
 
 ```julia
-julia> ts_fmt = TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage());
+julia> ts_fmt = TimestampTransform("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage());
 
 julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
            @info "hey there"
@@ -32,7 +34,7 @@ julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
 ### Logging everything in a single line
 
 ```julia
-julia> oneline_fmt = OneLineLoggingTransformer();
+julia> oneline_fmt = OneLineTransform();
 
 julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
            x = 1
@@ -47,8 +49,8 @@ julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
 ```julia
 json_logger = logger(
                 SimplestLogger(),
-                TimestampLoggingTransformer("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs()),
-                JSONLoggingTransformer(indent = 2))
+                TimestampTransform("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs()),
+                JSONTransform(indent = 2))
 ```
 
 _Voila!_
