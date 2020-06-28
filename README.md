@@ -3,15 +3,16 @@
 
 # LoggingFacilities
 
-This package contains some general logging facilities.  It uses the [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl) framework for building composable loggers.
+This package contains some general logging facilities.  It uses the [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl) 
+framework for building composable loggers.
 
 Sink
 - `SimplestLogger`, which is simpler than the SimpleLogger from Base :-)
 
 Logging Formats
-- `TimestampLoggingTransformer`: either prepend to `message` string or added as a variables
-- `OneLineLoggingTransformer`: append `variable=value` pairs to the `message` string
-- `JSONLoggingTransformer`: format log as JSON string
+- `TimestampLoggingTransformer`: prepend timestamp to `message` string or add to the variables list
+- `OneLineLoggingTransformer`: convert variables as `variable=value` and append to the `message` string
+- `JSONLoggingTransformer`: reformat log message as a JSON record
 
 ## Usage
 
@@ -71,7 +72,7 @@ julia> with_logger(json_logger) do
 
 ## Credits
 
-This package was conceived part of [this coding live stream](https://www.youtube.com/watch?v=89xlkSUh_dA).
+This package was conceived as part of [this coding live stream](https://www.youtube.com/watch?v=89xlkSUh_dA).
 
 Special credit to [Chris de Graff](https://github.com/christopher-dG) for joining
 the stream and helping out.
