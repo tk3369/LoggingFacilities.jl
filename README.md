@@ -1,6 +1,6 @@
 [![Travis Build Status](https://travis-ci.org/tk3369/LoggingFacilities.jl.svg?branch=master)](https://travis-ci.org/tk3369/LoggingFacilities.jl)
 [![codecov.io](http://codecov.io/github/tk3369/LoggingFacilities.jl/coverage.svg?branch=master)](http://codecov.io/github/tk3369/LoggingFacilities.jl?branch=master)
-![Project Status](https://img.shields.io/badge/status-proof--of--concept-red)
+![Project Status](https://img.shields.io/badge/status-experimental-red)
 
 # LoggingFacilities
 
