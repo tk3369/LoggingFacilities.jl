@@ -23,7 +23,8 @@ Use the `logger` function to create new Transformer logger with the desired form
 ### Logging with timestamp
 
 ```julia
-julia> ts_fmt = TimestampTransform("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage());
+julia> ts_fmt = TimestampTransform(format = "yyyy-mm-dd HH:MM:SS",
+                                   location = InjectByPrependingToMessage());
 
 julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
            @info "hey there"
@@ -49,7 +50,8 @@ julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
 ```julia
 json_logger = logger(
                 SimplestLogger(),
-                TimestampTransform("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs()),
+                TimestampTransform(format = "yyyy-mm-dd HH:MM:SS",
+                                   location = InjectByAddingToKwargs()),
                 JSONTransform(indent = 2))
 ```
 
