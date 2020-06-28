@@ -35,7 +35,7 @@ using Test
             @info "hey there" x y
         end
         logs = String(take!(io)) |> chomp
-        @test findall("\n", logs) |> length == 0
+        @test findall(x -> x == '\n', logs) |> length == 0
     end
 
     # Verify valid JSON
