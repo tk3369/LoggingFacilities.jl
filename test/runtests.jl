@@ -17,7 +17,8 @@ using Test
     # Validate timestamp is printed at the beginning of line
     let
         io = IOBuffer()
-        ts_trans = TimestampTransform("yyyy-mm-dd HH:MM:SS", InjectByPrependingToMessage())
+        ts_trans = TimestampTransform(format = "yyyy-mm-dd HH:MM:SS",
+                                      location = InjectByPrependingToMessage())
         with_logger(logger(SimplestLogger(io), ts_trans)) do
             @info "hey there"
         end
@@ -69,7 +70,7 @@ using Test
     let
         io = IOBuffer()
         js_trans = JSONTransform(indent = 2)
-        ts_trans = TimestampTransform("yyyy-mm-dd HH:MM:SS", InjectByAddingToKwargs())
+        ts_trans = TimestampTransform(format = "yyyy-mm-dd HH:MM:SS", location = InjectByAddingToKwargs())
         my_logger = logger(SimplestLogger(io), ts_trans, js_trans)
         with_logger(my_logger) do
             x = 1
