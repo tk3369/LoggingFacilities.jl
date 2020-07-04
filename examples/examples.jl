@@ -23,13 +23,13 @@ with_logger(timestamp_message_logger(ConsoleLogger())) do
 end
 
 # json
-json_logger() = build(SimplestLogger(),
-                      migrate(LevelProperty(), KwargsProperty()),
-                      migrate(MessageProperty(), KwargsProperty()),
-                      migrate(KwargsProperty(), MessageProperty();
+json_logger = build(SimplestLogger(),
+                    migrate(LevelProperty(), KwargsProperty()),
+                    migrate(MessageProperty(), KwargsProperty()),
+                    migrate(KwargsProperty(), MessageProperty();
                                 transform = x -> chomp(json(x, 2)), prepend = ""))
 
-with_logger(json_logger()) do
+with_logger(json_logger) do
     x = 1; y = 2; current_time = now()
     @info "hello world" x y
     @info "cool" current_time
