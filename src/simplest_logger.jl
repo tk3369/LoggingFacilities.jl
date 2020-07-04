@@ -10,7 +10,7 @@ struct SimplestLogger <: AbstractLogger
     stream::IO
     min_level::LogLevel
 end
-SimplestLogger(stream::IO=stderr, level=Info) = SimplestLogger(stream, level)
+SimplestLogger(stream::IO=stderr, level=Logging.Info) = SimplestLogger(stream, level)
 
 Logging.shouldlog(logger::SimplestLogger, level, _module, group, id) = true
 

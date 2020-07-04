@@ -3,80 +3,55 @@
 
 # LoggingFacilities
 
-This package contains some general logging facilities.
-It uses the [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl)
-framework for building composable loggers.
+This package provides an easy way to build transformer loggers as defined in
+[LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl).
 
-Sink
-- `SimplestLogger`, which is simpler than the SimpleLogger from Base :-)
+A standard log record consists of the following components:
+- `level`: the logging level like Error, Warn, Info, and Debug
+- `messasge`: a string
+- `kwargs`: key-value pairs
 
-Transforms
-- `TimestampTransform`: prepend timestamp to `message` string or add to the variables list
-- `OneLineTransform`: convert variables as `variable=value` and append to the `message` string
-- `LevelToVarTransform`: copy the level string to the variable list
-- `JSONTransform`: reformat log message as a JSON record
+When designing log output, it may be desirable either enhance the log record
+with additional information or move the data around within the record.  For examples:
 
-## Usage
+1. Prepend current timestamp to `message` or add it to `kwargs`.
+2. Log a single line by moving all `kwargs` into `message`.
+3. Reformat the log record as a JSON string.
+4. etc.
 
-Use the `logger` function to create new Transformer logger with the desired format.
+# How to use?
 
-### Logging with timestamp
+This package gives you facilities to do all of the above easily.  There are 3 main
+concepts:
+1. Inject - add data to the log record at either `message` or `kwargs` location.
+2. Migrate - move data between `level`, `message`, and `kwargs`.
+3. Remove - delete data from the log record
 
-```julia
-julia> ts_fmt = TimestampTransform(format = "yyyy-mm-dd HH:MM:SS",
-                                   location = InjectByPrependingToMessage());
-
-julia> with_logger(logger(ConsoleLogger(), ts_fmt)) do
-           @info "hey there"
-       end
-[ Info: 2020-06-13 21:39:13 hey there
-```
-
-### Logging everything in a single line
+Examples:
 
 ```julia
-julia> oneline_fmt = OneLineTransform();
+# Migrate all kwargs to the message string
+oneline_logger(logger) = build(logger, migrate(KwargsProperty(), MessageProperty()))
 
-julia> with_logger(logger(ConsoleLogger(), oneline_fmt)) do
-           x = 1
-           y = "abc"
-           @info "hey there" x y
-       end
-[ Info: hey there x=1 y=abc
-```
+# Inject a timestamp to the kwargs location
+timestamp_kwargs_logger(logger) =
+    build(logger, inject(KwargsLocation(), () -> (:timestamp => now(),)))
 
-### Logging JSON string
+# Inject a timestamp to the beginning of the message
+timestamp_message_logger(logger) =
+    build(logger, inject(BeginningMessageLocation(), () -> now()))
 
-```julia
-json_logger = logger(
-                SimplestLogger(),
-                TimestampTransform(format = "yyyy-mm-dd HH:MM:SS",
-                                   location = InjectByAddingToKwargs()),
-                JSONTransform(indent = 2))
-```
-
-_Voila!_
-
-```julia
-julia> with_logger(json_logger) do
-           @info "hey"
-           @info "great!"
-       end
-{
-  "timestamp": "2020-06-27 21:45:00",
-  "level": "Info",
-  "message": "hey"
-}
-{
-  "timestamp": "2020-06-27 21:45:01",
-  "level": "Info",
-  "message": "great!"
-}
+# JSON logging
+json_logger(logger) = build(logger,
+                            migrate(LevelProperty(), KwargsProperty()),
+                            migrate(MessageProperty(), KwargsProperty()),
+                            migrate(KwargsProperty(), MessageProperty(); transform = JSON.json))
 ```
 
 ## Credits
 
-This package was conceived as part of [this coding live stream](https://www.youtube.com/watch?v=89xlkSUh_dA).
+This package was originally conceived as part of [this coding live stream](https://www.youtube.com/watch?v=89xlkSUh_dA). Special credit to [Chris de Graff](https://github.com/christopher-dG) for joining
+the live stream and helping out.
 
-Special credit to [Chris de Graff](https://github.com/christopher-dG) for joining
-the stream and helping out.
+It has been redesigned significantly since v0.2.0.
+
