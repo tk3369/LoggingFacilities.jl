@@ -4,15 +4,19 @@ using Logging
 using LoggingExtras
 using Dates
 using JSON
+using Pipe
+using TimeZones
 
-using Logging: Info
+export  build, migrate, inject, remove,
+        KwargsProperty, MessageProperty, LevelProperty,
+        LevelLocation, KwargsLocation, BeginningMessageLocation, EndingMessageLocation, WholeMessageLocation,
+        OneLineTransformerLogger, TimestampTransformerLogger, JSONTransformerLogger,
+        MessageOnlyLogger
 
-export TimestampTransform, OneLineTransform, JSONTransform, LevelAsVarTransform
-export logger
-export SimplestLogger
-export InjectByPrependingToMessage, InjectByAddingToKwargs
-
-include("transformers.jl")
-include("simplest_logger.jl")
+include("types.jl")
+include("transform.jl")
+include("build.jl")
+include("common.jl")
+include("sink.jl")
 
 end #module
