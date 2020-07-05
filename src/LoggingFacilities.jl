@@ -11,7 +11,7 @@ export  build, migrate, inject, remove,
         KwargsProperty, MessageProperty, LevelProperty,
         LevelLocation, KwargsLocation, BeginningMessageLocation, EndingMessageLocation, WholeMessageLocation,
         OneLineTransformerLogger, TimestampTransformerLogger, JSONTransformerLogger,
-        SimplestLogger
+        MessageOnlyLogger
 
 include("types.jl")
 include("transform.jl")

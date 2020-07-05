@@ -23,7 +23,7 @@ with_logger(timestamp_message_logger(ConsoleLogger())) do
 end
 
 # json
-json_logger = build(SimplestLogger(),
+json_logger = build(MessageOnlyLogger(),
                     migrate(LevelProperty(), KwargsProperty()),
                     migrate(MessageProperty(), KwargsProperty()),
                     migrate(KwargsProperty(), MessageProperty();

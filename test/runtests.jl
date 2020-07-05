@@ -76,6 +76,9 @@ using Dates
         @test migrate(log1, LevelProperty(), KwargsProperty(); transform = string).kwargs == (:level => "Info",)
     end
 
+    # The following tests must use `current_logger` such that the results can be collected
+    # by `Test.collect_test_logs`.
+
     @testset "One Line Logger" begin
         logs, value = Test.collect_test_logs() do
             with_logger(OneLineTransformerLogger(current_logger())) do
@@ -139,4 +142,13 @@ using Dates
         @test split(logs[4].message, "\n") |> length == 4
     end
 
+    # Sinks
+    @testset "MessageOnlyLogger" begin
+        io = IOBuffer()
+        with_logger(MessageOnlyLogger(io)) do
+            x = 1
+            @info "hello"
+        end
+        @test String(take!(io)) == "hello\n"  # no level, no kwargs, contains newline
+    end
 end
