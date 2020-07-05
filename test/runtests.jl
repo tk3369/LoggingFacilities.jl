@@ -99,10 +99,16 @@ using Dates
                                                    format = "yyyy-mm-dd")) do
                 @info "hello"
             end
+            with_logger(TimestampTransformerLogger(current_logger(), KwargsLocation();
+                                                   format = "yyyy-mm-dd")) do
+                @info "hello"
+            end
         end
         is_date_format(s) = match(r"\d\d\d\d-\d\d-\d\d", s) !== nothing
-        @test logs[1].message[1:10]      |> is_date_format == true
-        @test logs[2].message[end-9:end] |> is_date_format == true
+        @test logs[1].message[1:10]      |> is_date_format
+        @test logs[2].message[end-9:end] |> is_date_format
+        @test first(logs[3].kwargs) |> first == :timestamp
+        @test first(logs[3].kwargs) |> last |> is_date_format
     end
 
     @testset "JSON Logger" begin
