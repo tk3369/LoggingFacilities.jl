@@ -6,6 +6,46 @@
 This package provides an easy way to build transformer loggers as defined in
 [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl).
 
+A few commonly used transformer loggers are provided as part of this package.
+They can be accessed as follows.
+
+**OneLineTransformerLogger**
+```julia
+julia> with_logger(OneLineTransformerLogger(current_logger())) do
+           name = "Pluto"
+           planet = false
+           @info "hello world" name planet
+       end
+[ Info: hello world name=Pluto planet=false
+```
+
+**TimestampTransformerLogger**
+```julia
+julia> with_logger(TimestampTransformerLogger(current_logger(), BeginningMessageLocation();
+                                              format = "yyyy-mm-dd HH:MM:SSz")) do
+           @info "hello"
+       end
+
+[ Info: 2020-07-04 21:00:58-07:00 hello
+```
+
+**JSONTransformerLogger**
+```julia
+julia> with_logger(JSONTransformerLogger(SimplestLogger(); indent = 2)) do
+           name = "Pluto"
+           planet = false
+           @info "hello world" name planet
+       end
+{
+  "message": "hello world",
+  "level": "Info",
+  "name": "Pluto",
+  "planet": false
+}
+```
+
+## How does it work?
+
 A standard log record consists of the following components:
 - `level`: the logging level like Error, Warn, Info, and Debug
 - `messasge`: a string
@@ -19,33 +59,25 @@ with additional information or move the data around within the record.  For exam
 3. Reformat the log record as a JSON string.
 4. etc.
 
-# How to use?
+## How to build new loggers?
 
 This package gives you facilities to do all of the above easily.  There are 3 main
 concepts:
 1. Inject - add data to the log record at either `message` or `kwargs` location.
 2. Migrate - move data between `level`, `message`, and `kwargs`.
-3. Remove - delete data from the log record
+3. Remove - delete data from anywhere in the log record
 
 Examples:
 
 ```julia
-# Migrate all kwargs to the message string
-oneline_logger(logger) = build(logger, migrate(KwargsProperty(), MessageProperty()))
+# Inject a timestamp to the beginning of the message
+logger = build(current_logger(), inject(BeginningMessageLocation(), () -> now()))
 
 # Inject a timestamp to the kwargs location
-timestamp_kwargs_logger(logger) =
-    build(logger, inject(KwargsLocation(), () -> (:timestamp => now(),)))
+logger = build(current_logger(), inject(KwargsLocation(), () -> (:timestamp => now(),)))
 
-# Inject a timestamp to the beginning of the message
-timestamp_message_logger(logger) =
-    build(logger, inject(BeginningMessageLocation(), () -> now()))
-
-# JSON logging
-json_logger(logger) = build(logger,
-                            migrate(LevelProperty(), KwargsProperty()),
-                            migrate(MessageProperty(), KwargsProperty()),
-                            migrate(KwargsProperty(), MessageProperty(); transform = JSON.json))
+# Migrate all kwargs to the message string
+logger = build(current_logger(), migrate(KwargsProperty(), MessageProperty()))
 ```
 
 ## Credits
