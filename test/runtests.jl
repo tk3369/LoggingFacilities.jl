@@ -41,6 +41,7 @@ using Dates
 
         @testset "Level Location" begin
             @test inject(log1, LevelLocation(), Logging.Error).level == Logging.Error
+            @test inject(log1, LevelLocation(), () -> Logging.Error).level == Logging.Error
         end
     end
 
@@ -74,6 +75,17 @@ using Dates
         @test migrate(log1, LevelProperty(), KwargsProperty()).kwargs == (:level => Logging.Info,)
         @test migrate(log1, LevelProperty(), KwargsProperty(); label = :_level).kwargs == (:_level => Logging.Info,)
         @test migrate(log1, LevelProperty(), KwargsProperty(); transform = string).kwargs == (:level => "Info",)
+    end
+
+    @testset "Mutate" begin
+        escalate_info_to_warn(log) = log.level == Logging.Info ? Logging.Warn : log.level
+        @test mutate(log1, LevelProperty(); transform = escalate_info_to_warn).level == Logging.Warn
+
+        quote_me(log) = "\"$(log.message)\""
+        @test mutate(log1, MessageProperty(); transform = quote_me).message == "\"hello\""
+
+        replace_b_with_c(log) = tuple(collect(((k == :b ? :c : k) => v) for (k,v) in log.kwargs)...)
+        @test mutate(log3, KwargsProperty(); transform = replace_b_with_c).kwargs == (:a => 1, :c => 2)
     end
 
     # The following tests must use `current_logger` such that the results can be collected

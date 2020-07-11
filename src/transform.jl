@@ -58,9 +58,9 @@ end
 Migrate the message string to kwargs location with key `label`.
 """
 function migrate(log, ::MessageProperty, ::KwargsProperty; label = :message)
-    @pipe log |>
-          inject(_, KwargsLocation(), (label => log.message,)) |>
-          remove(_, MessageProperty())
+    return @pipe log |>
+                 inject(_, KwargsLocation(), (label => _.message,)) |>
+                 remove(_, MessageProperty())
 end
 
 """
@@ -71,11 +71,11 @@ pairs separated by a space (specified as `divider`). However, a custom `transfor
 passed for custom formatting.
 """
 function migrate(log, ::KwargsProperty, ::MessageProperty;
-        sep = "=", divider = " ", prepend = " ",
-        transform = (kwargs) -> kv_string(kwargs, sep, divider))
-    @pipe log |>
-          inject(_, EndingMessageLocation(), transform(log.kwargs); sep = prepend) |>
-          remove(_, KwargsProperty())
+                 sep = "=", divider = " ", prepend = " ",
+                 transform = (kwargs) -> kv_string(kwargs, sep, divider))
+    return @pipe log |>
+                 inject(_, EndingMessageLocation(), transform(_.kwargs); sep = prepend) |>
+                 remove(_, KwargsProperty())
 end
 
 """
@@ -85,9 +85,9 @@ Migrate the log level to the message field at the `loc` location.  A custom tran
 may be specified should a different format is desired.
 """
 function migrate(log, ::LevelProperty, ::MessageProperty;
-        location = BeginningMessageLocation(),
-        transform::Function = string)
-    inject(log, location, transform(log.level))
+                 location = BeginningMessageLocation(),
+                 transform::T = string) where {T <: Function}
+    return inject(log, location, transform(log.level))
 end
 
 """
@@ -97,7 +97,35 @@ Migrate the log level to the kwargs field with key `label`.  A custom transform 
 may be specified should a different format is desired.
 """
 function migrate(log, ::LevelProperty, ::KwargsProperty;
-        label = :level,
-        transform::Function = identity)
-    inject(log, KwargsLocation(), (label => transform(log.level),))
+                 label = :level,
+                 transform::T = identity) where {T <: Function}
+    return inject(log, KwargsLocation(), (label => transform(log.level),))
+end
+
+
+"""
+    mutate(::AbstractLogProperty; transform::Function)
+
+Mutate the log property by applying `transform` function over it.  The transformation
+function will be passed with an immutable log record.
+"""
+mutate(prop::AbstractLogProperty; kwargs...) = log -> mutate(log, prop; kwargs...)
+
+function mutate(log, ::MessageProperty;
+                transform::T) where {T <: Function}
+    return @pipe log |>
+                 remove(_, MessageProperty()) |>
+                 inject(_, BeginningMessageLocation(), transform(log))
+end
+
+function mutate(log, ::LevelProperty;
+                transform::T) where {T <: Function}
+    inject(log, LevelLocation(), () -> transform(log))
+end
+
+function mutate(log, ::KwargsProperty;
+                transform::T) where {T <: Function}
+    return @pipe log |>
+                 remove(_, KwargsProperty()) |>
+                 inject(_, KwargsLocation(), () -> transform(log))
 end

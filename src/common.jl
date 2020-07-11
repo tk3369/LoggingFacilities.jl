@@ -7,7 +7,9 @@ Return a logger that rolls all kwargs into the message field, resulting
 in a single-line log.
 """
 function OneLineTransformerLogger(logger::AbstractLogger)
-    return build(logger, migrate(KwargsProperty(), MessageProperty()))
+    return TransformerLogger(logger) do log
+        migrate(log, KwargsProperty(), MessageProperty())
+    end
 end
 
 """
@@ -27,15 +29,23 @@ injected in the specified `locations`:
 """
 function TimestampTransformerLogger end
 
+function TimestampTransformerLogger(location::T; kwargs...) where {T <: AbstractInjectLocation}
+    return logger -> TimestampTransformerLogger(logger, location; kwargs...)
+end
+
 function TimestampTransformerLogger(logger::AbstractLogger, location::KwargsLocation;
                                     format = "yyyy-mm-ddTHH:MM:SSz",
                                     label = :timestamp) where {T <: AbstractInjectLocation}
-    return build(logger, inject(location, () -> (label => current_time_string(format),)))
+    return TransformerLogger(logger) do log
+        inject(log, location, () -> (label => current_time_string(format),))
+    end
 end
 
 function TimestampTransformerLogger(logger::AbstractLogger, location::MessageLocation;
                                     format = "yyyy-mm-ddTHH:MM:SSz")
-    return build(logger, inject(location, () -> current_time_string(format)))
+    return TransformerLogger(logger) do log
+        inject(log, location, () -> current_time_string(format))
+    end
 end
 
 """
@@ -63,11 +73,82 @@ function JSONTransformerLogger(logger::AbstractLogger;
                                level_label::Symbol = :level,
                                message_label::Symbol = :message,
                                indent::Integer = 0)
-    jfunc = indent == 0 ? json : x -> json(x, indent)
-    return build(logger,
-                 migrate(LevelProperty(), KwargsProperty(); label = level_label, transform = string),
-                 migrate(MessageProperty(), KwargsProperty(); label = message_label),
-                 migrate(KwargsProperty(), MessageProperty();
-                         transform = x -> chomp(jfunc(x)),
-                         prepend = ""))
+    return TransformerLogger(logger) do log
+            @pipe log |>
+                 migrate(_, LevelProperty(), KwargsProperty(); label = level_label, transform = string) |>
+                 migrate(_, MessageProperty(), KwargsProperty(); label = message_label) |>
+                 migrate(_, KwargsProperty(), MessageProperty();
+                         transform = x -> chomp(json(namedtuple(x), indent)),
+                         prepend = "")
+    end
 end
+
+"""
+    ColorMessageTransformerLogger(logger; colors = Dict{Logging.LogLevel,ColorSpec})
+
+Apply color to message string based upon log level.
+"""
+function ColorMessageTransformerLogger(colors::Dict{Logging.LogLevel,ColorSpec})
+    return logger -> ColorMessageTransformerLogger(logger, colors)
+end
+
+function ColorMessageTransformerLogger(logger::AbstractLogger,
+                              colors::Dict{Logging.LogLevel,ColorSpec})
+    return TransformerLogger(logger) do log
+                mutate(log, MessageProperty();
+                       transform = (log) -> styled_string(log.message, colors[log.level]))
+    end
+end
+
+function FixedMessageWidthTransformerLogger(logger::AbstractLogger, width::Integer)
+    return TransformerLogger(logger) do log
+                mutate(log, MessageProperty();
+                    transform = (log) -> first(rpad(log.message, width), width))
+    end
+end
+
+function FixedKwargWidthTransformerLogger(logger::AbstractLogger, width::Integer)
+    return TransformerLogger(logger) do log
+                mutate(log, KwargsProperty(); transform = (log) -> show(log.kwarg))
+    end
+end
+
+"""
+    styled_string(xs...; spec::ColorSpec)
+
+Return a styled string.
+"""
+function styled_string(x, spec::ColorSpec)
+    io = IOBuffer()
+    printstyled(IOContext(io, :color => true), x; bold = spec.bold, color = spec.color)
+    return String(take!(io))
+end
+
+"""
+    namedtuple(pairs)
+
+Convert an iterable of pairs into a named tuple. If there's any duplicate in the key,
+then the first one wins (silently).
+"""
+function namedtuple(pairs)
+    d = Dict()
+    for p in pairs
+        get!(d, Symbol(first(p)), last(p))
+    end
+    names = (keys(d)...,)
+    nt = NamedTuple{names}(values(d))
+    return nt
+end
+
+"""
+    compose(logger::AbstractLogger, transformers::Function...)
+
+Compose a transformer logger by chaining the specified transformer loggers
+in the same order as they are specified.
+
+Note: this function should probably be upstreamed to LoggingExtras.jl
+"""
+function compose(logger::AbstractLogger, transformers::Function...)
+    ∘(transformers...)(logger)
+end
+

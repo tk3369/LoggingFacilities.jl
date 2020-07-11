@@ -41,3 +41,9 @@ abstract type AbstractLogProperty end
 struct LevelProperty <: AbstractLogProperty end
 struct MessageProperty <: AbstractLogProperty end
 struct KwargsProperty <: AbstractLogProperty end
+
+struct ColorSpec
+    color::Union{Symbol,Int}
+    bold::Bool
+end
+
