@@ -109,12 +109,6 @@ function FixedMessageWidthTransformerLogger(logger::AbstractLogger, width::Integ
     end
 end
 
-function FixedKwargWidthTransformerLogger(logger::AbstractLogger, width::Integer)
-    return TransformerLogger(logger) do log
-                mutate(log, KwargsProperty(); transform = (log) -> show(log.kwarg))
-    end
-end
-
 """
     styled_string(xs...; spec::ColorSpec)
 
