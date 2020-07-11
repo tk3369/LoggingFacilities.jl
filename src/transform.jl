@@ -4,7 +4,7 @@
 Inject the value `v` to the specific location in the log record.  If `v` is callable
 (e.g. function) then it will be evalated at runtime before injecting into the log.
 """
-inject(loc::T, v; kw...) where {T <: AbstractInjectLocation} = log -> inject(log, loc, v; kw...)
+function inject end
 
 function inject(log, loc::T, v; sep = " ") where {T <: MessageLocation}
     value = v isa Base.Callable ? v() : v
@@ -37,7 +37,7 @@ end
 Remove either `message` or `kwargs` data from the log record.  The `prop`
 argument can be either `MessageProperty()` or `KwargsProperty`.
 """
-remove(prop::T) where {T <: AbstractLogProperty} = log -> remove(log, prop)
+function remove end
 
 remove(log, ::KwargsProperty) = merge(log, (kwargs = (),))
 remove(log, ::MessageProperty) = merge(log, (message = "",))
@@ -46,11 +46,6 @@ remove(log, ::LevelProperty) = error("Level property cannot be removed")
 # Migrating stuffs
 
 kv_string(kwargs, sep, divider) = join(["$k$sep$v" for (k,v) in kwargs], divider)
-
-# dispatcher
-migrate(from::AbstractLogProperty, to::AbstractLogProperty; kwargs...) = log -> begin
-    migrate(log, from, to; kwargs...)
-end
 
 """
     migrate(::MessageProperty, ::KwargsProperty; label = :message)
@@ -109,7 +104,7 @@ end
 Mutate the log property by applying `transform` function over it.  The transformation
 function will be passed with an immutable log record.
 """
-mutate(prop::AbstractLogProperty; kwargs...) = log -> mutate(log, prop; kwargs...)
+function mutate end
 
 function mutate(log, ::MessageProperty;
                 transform::T) where {T <: Function}
