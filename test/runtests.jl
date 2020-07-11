@@ -154,6 +154,37 @@ using Dates
         @test split(logs[4].message, "\n") |> length == 4
     end
 
+    @testset "Color message" begin
+        colors = Dict(Logging.Info => ColorSpec(:red, false))
+        logs, value = Test.collect_test_logs() do
+            with_logger(() -> @info("hello"), ColorMessageTransformerLogger(current_logger(), colors))
+        end
+        @test length(logs[1].message) > 5    # since it has additional chars for switching colors
+    end
+
+    @testset "Fixed width message" begin
+        logs, value = Test.collect_test_logs() do
+            with_logger(() -> @info("hello"), FixedMessageWidthTransformerLogger(current_logger(), 30))
+        end
+        @test length(logs[1].message) == 30
+    end
+
+    # Composition
+    @testset "Compose transformers" begin
+        logs, value = Test.collect_test_logs() do
+            logger = compose(
+                current_logger(),
+                TimestampTransformerLogger(BeginningMessageLocation()),
+                OneLineTransformerLogger
+            )
+            with_logger(logger) do
+                x = 1
+                @info "hello" x
+            end
+        end
+        @test match(r"\d\d\d\d.* hello x=1", logs[1].message) !== nothing
+    end
+
     # Sinks
     @testset "MessageOnlyLogger" begin
         io = IOBuffer()
@@ -163,4 +194,5 @@ using Dates
         end
         @test String(take!(io)) == "hello\n"  # no level, no kwargs, contains newline
     end
+
 end
