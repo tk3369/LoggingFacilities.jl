@@ -13,10 +13,11 @@ function OneLineTransformerLogger(logger::AbstractLogger)
 end
 
 """
-    TimestampTransformerLogger(logger::AbstractLogger, location::AbstractInjectLocation; kwargs...)
+    TimestampTransformerLogger([logger::AbstractLogger], location::AbstractInjectLocation; kwargs...)
 
-Return a logger that includes a timestamp in the log. The timestamp can be
-injected in the specified `locations`:
+Return a logger that includes a timestamp in the log.  If `logger` is not specified,
+then it returns a closure that takes a single logger argument. The timestamp can be injected
+in any of the following `location`:
 - [`KwargsLocation`](@ref)
 - [`BeginningMessageLocation`](@ref)
 - [`EndingMessageLocation`](@ref)
@@ -84,9 +85,10 @@ function JSONTransformerLogger(logger::AbstractLogger;
 end
 
 """
-    ColorMessageTransformerLogger(logger; colors = Dict{Logging.LogLevel,ColorSpec})
+    ColorMessageTransformerLogger([logger], colors::Dict{Logging.LogLevel,ColorSpec})
 
-Apply color to message string based upon log level.
+Apply `colors` to message string based upon log level. If `logger` is not specified,
+then it returns a closure that takes a single logger argument.
 """
 function ColorMessageTransformerLogger(colors::Dict{Logging.LogLevel,ColorSpec})
     return logger -> ColorMessageTransformerLogger(logger, colors)
