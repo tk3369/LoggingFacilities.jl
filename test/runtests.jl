@@ -157,7 +157,8 @@ using Dates
     @testset "Color message" begin
         colors = Dict(Logging.Info => ColorSpec(:red, false))
         logs, value = Test.collect_test_logs() do
-            with_logger(() -> @info("hello"), ColorMessageTransformerLogger(current_logger(), colors))
+            clogger = ColorMessageTransformerLogger(colors)(current_logger())
+            with_logger(() -> @info("hello"), clogger)
         end
         @test length(logs[1].message) > 5    # since it has additional chars for switching colors
     end
