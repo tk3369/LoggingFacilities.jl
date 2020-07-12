@@ -78,13 +78,26 @@ Examples:
 
 ```julia
 # Inject a timestamp to the beginning of the message
-logger = build(current_logger(), inject(BeginningMessageLocation(), () -> now()))
+logger = TransformerLogger(current_logger()) do log
+             inject(log, BeginningMessageLocation(), () -> now())
+         end
 
 # Inject a timestamp to the kwargs location
-logger = build(current_logger(), inject(KwargsLocation(), () -> (:timestamp => now(),)))
+logger = TransformerLogger(current_logger()) do log
+             inject(log, KwargsLocation(), () -> (:timestamp => now(),))
+         end
 
 # Migrate all kwargs to the message string
-logger = build(current_logger(), migrate(KwargsProperty(), MessageProperty()))
+logger = TransformerLogger(current_logger()) do log
+             migrate(log, KwargsProperty(), MessageProperty())
+         end
+
+# Multiple operations (using Pipe.jl)
+logger = TransformerLogger(current_logger()) do log
+             @pipe log |>
+                   migrate(_log_, KwargsProperty(), MessageProperty())
+                   inject(_, BeginningMessageLocation(), () -> now())
+         end
 ```
 
 ## Credits
