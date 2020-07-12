@@ -20,7 +20,7 @@ around within the record.  For examples:
 
 1. Prepend current timestamp to `message` or add it to `kwargs`
 2. Format the log as a single line by moving all `kwargs` into `message`
-3. Format the log record as a JSON string in `message` field
+3. Format the complete log record as a JSON string in `message` field
 4. etc.
 
 ## Common Transformer Loggers
@@ -29,6 +29,8 @@ A few commonly used transformer loggers are provided as part of this package.
 They can be accessed as follows.
 
 ### OneLineTransformerLogger
+
+Migrate all kwargs fields by appending them to the message string.
 ```julia
 julia> with_logger(OneLineTransformerLogger(current_logger())) do
            name = "Pluto"
@@ -39,6 +41,8 @@ julia> with_logger(OneLineTransformerLogger(current_logger())) do
 ```
 
 ### TimestampTransformerLogger
+
+Add a timestamp at the beginnging or the end of the message string.
 ```julia
 julia> with_logger(TimestampTransformerLogger(current_logger(), BeginningMessageLocation();
                                               format = "yyyy-mm-dd HH:MM:SSz")) do
@@ -51,8 +55,11 @@ julia> with_logger(TimestampTransformerLogger(current_logger(), BeginningMessage
 ### JSONTransformerLogger
 
 The JSONTransformerLogger is a little special in that it is expected to be used with
-the `MessageOnlyLogger` sink.  The `level` and `message` data are automatically
-included within the JSON string, for which their labels are customizable.
+the `MessageOnlyLogger` sink (so that we can e.g. skip adding the log level as a prefix).  
+
+The `level` and `message` data are automatically
+included within the JSON string, for which their labels are customizable. See doc string
+for details.
 
 ```julia
 julia> with_logger(JSONTransformerLogger(MessageOnlyLogger(); indent = 2)) do
@@ -70,6 +77,7 @@ julia> with_logger(JSONTransformerLogger(MessageOnlyLogger(); indent = 2)) do
 
 ### ColorMessageTransformerLogger
 
+Color the message string based upon the log level.  Try it! :-)
 ```julia
 julia> preferred_colors = Dict(
            Logging.Debug => ColorSpec(:grey, false),
@@ -101,6 +109,9 @@ julia> with_logger(clogger) do
 
 ### FixedMessageWidthTransformerLogger
 
+Fix the width of the message string by padding spaces at the end. If the message string is longer
+than the specified width, then it is truncated.
+
 ```julia
 julia> logger = compose(
            current_logger(),
@@ -117,17 +128,20 @@ julia> with_logger(logger) do
        end
 [ Info: Iteration #1                             x=0.9901128795 y=0.7439288248
 [ Info: Iteration #2                             x=0.7326098234 y=0.9881316083
-[ Info: Iteration #3                             x=0.105060163 y=0.2100138712
+[ Info: Iteration #3                             x=0.1050601631 y=0.2100138712
 [ Info: Iteration #4                             x=0.2812764292 y=0.0242226631
 ```
 
-## How to transform your log records?
+## Creating your own transformer logger...
 
-This package gives you facilities to do all of the above easily.  There are 3 main
-concepts:
+This is the whole reason why this package exists! :-)
+
+There are 4 main operations in a transformer:
+
 1. Inject - add data to the log record at either `message` or `kwargs` location.
-2. Migrate - move data between `level`, `message`, and `kwargs`.
-3. Remove - delete data from anywhere in the log record
+2. Migrate - move data between `level`, `message`, or `kwargs`.
+3. Mutate - mutate data in `level`, `message`, or `kwargs`
+4. Remove - empty out `message` or remove all elements in `kwargs`.
 
 Examples:
 
