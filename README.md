@@ -7,10 +7,28 @@
 This package provides an easy way to build transformer loggers as defined in
 [LoggingExtras.jl](https://github.com/oxinabox/LoggingExtras.jl).
 
+## Design
+
+A standard log record consists of the following components:
+- `level`: the logging level like Error, Warn, Info, and Debug
+- `messasge`: a string
+- `kwargs`: key-value pairs (where key is a Symbol)
+
+In practice, the log output may need to be enhanced with additional information.
+Further, it is conceivable that the data in these fields may need to be moved
+around within the record.  For examples:
+
+1. Prepend current timestamp to `message` or add it to `kwargs`
+2. Format the log as a single line by moving all `kwargs` into `message`
+3. Format the log record as a JSON string in `message` field
+4. etc.
+
+## Common Transformer Loggers
+
 A few commonly used transformer loggers are provided as part of this package.
 They can be accessed as follows.
 
-## OneLineTransformerLogger
+### OneLineTransformerLogger
 ```julia
 julia> with_logger(OneLineTransformerLogger(current_logger())) do
            name = "Pluto"
@@ -20,7 +38,7 @@ julia> with_logger(OneLineTransformerLogger(current_logger())) do
 [ Info: hello world name=Pluto planet=false
 ```
 
-## TimestampTransformerLogger
+### TimestampTransformerLogger
 ```julia
 julia> with_logger(TimestampTransformerLogger(current_logger(), BeginningMessageLocation();
                                               format = "yyyy-mm-dd HH:MM:SSz")) do
@@ -30,7 +48,7 @@ julia> with_logger(TimestampTransformerLogger(current_logger(), BeginningMessage
 [ Info: 2020-07-04 21:00:58-07:00 hello
 ```
 
-## JSONTransformerLogger
+### JSONTransformerLogger
 
 The JSONTransformerLogger is a little special in that it is expected to be used with
 the `MessageOnlyLogger` sink.  The `level` and `message` data are automatically
@@ -50,21 +68,58 @@ julia> with_logger(JSONTransformerLogger(MessageOnlyLogger(); indent = 2)) do
 }
 ```
 
-## Design
+### ColorMessageTransformerLogger
 
-A standard log record consists of the following components:
-- `level`: the logging level like Error, Warn, Info, and Debug
-- `messasge`: a string
-- `kwargs`: key-value pairs (where key is a Symbol)
+```julia
+julia> preferred_colors = Dict(
+           Logging.Debug => ColorSpec(:grey, false),
+           Logging.Info  => ColorSpec(:cyan, true),
+           Logging.Warn  => ColorSpec(:yellow, true),
+           Logging.Error => ColorSpec(:red, true),
+       );
 
-In practice, the log output may need to be enhanced with additional information.
-Further, it is conceivable that the data in these fields may need to be moved
-around within the record.  For examples:
+julia> clogger = ColorMessageTransformerLogger(current_logger(), preferred_colors);
 
-1. Prepend current timestamp to `message` or add it to `kwargs`
-2. Format the log as a single line by moving all `kwargs` into `message`
-3. Format the log record as a JSON string in `message` field
-4. etc.
+julia> with_logger(clogger) do
+           x = 1; y = rand(); z = "Ryan"
+           @info "hello world" x y
+           @warn "pay attention!" y z
+           @error "what!" x z
+       end
+┌ Info: hello world
+│   x = 1
+└   y = 0.9948611399843765
+┌ Warning: pay attention!
+│   y = 0.9948611399843765
+│   z = "Ryan"
+└ @ Main REPL[12]:4
+┌ Error: what!
+│   x = 1
+│   z = "Ryan"
+└ @ Main REPL[12]:5
+```
+
+### FixedMessageWidthTransformerLogger
+
+```julia
+julia> logger = compose(
+           current_logger(),
+           logger -> FixedMessageWidthTransformerLogger(logger, 40),
+           OneLineTransformerLogger,
+       );
+
+julia> with_logger(logger) do
+           for i in 1:4
+               x = round(rand(), digits = 10)
+               y = round(rand(), digits = 10)
+               @info "Iteration #$i" x y
+           end
+       end
+[ Info: Iteration #1                             x=0.9901128795 y=0.7439288248
+[ Info: Iteration #2                             x=0.7326098234 y=0.9881316083
+[ Info: Iteration #3                             x=0.105060163 y=0.2100138712
+[ Info: Iteration #4                             x=0.2812764292 y=0.0242226631
+```
 
 ## How to transform your log records?
 
