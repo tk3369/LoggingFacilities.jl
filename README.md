@@ -55,7 +55,7 @@ julia> with_logger(TimestampTransformerLogger(current_logger(), BeginningMessage
 ### JSONTransformerLogger
 
 The JSONTransformerLogger is a little special in that it is expected to be used with
-the `MessageOnlyLogger` sink (so that we can e.g. skip adding the log level as a prefix).  
+the `MessageOnlyLogger` sink (so that we can e.g. skip adding the log level as a prefix).
 
 The `level` and `message` data are automatically
 included within the JSON string, for which their labels are customizable. See doc string
@@ -87,25 +87,9 @@ julia> preferred_colors = Dict(
        );
 
 julia> clogger = ColorMessageTransformerLogger(current_logger(), preferred_colors);
-
-julia> with_logger(clogger) do
-           x = 1; y = rand(); z = "Ryan"
-           @info "hello world" x y
-           @warn "pay attention!" y z
-           @error "what!" x z
-       end
-┌ Info: hello world
-│   x = 1
-└   y = 0.9948611399843765
-┌ Warning: pay attention!
-│   y = 0.9948611399843765
-│   z = "Ryan"
-└ @ Main REPL[12]:4
-┌ Error: what!
-│   x = 1
-│   z = "Ryan"
-└ @ Main REPL[12]:5
 ```
+
+![ColorMessageTransformerLogger usage](images/colorful.png)
 
 ### FixedMessageWidthTransformerLogger
 
