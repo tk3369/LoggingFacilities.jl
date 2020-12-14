@@ -1,4 +1,4 @@
-[![Travis Build Status](https://travis-ci.org/tk3369/LoggingFacilities.jl.svg?branch=master)](https://travis-ci.org/tk3369/LoggingFacilities.jl)
+[![Build Status](https://github.com/tk3369/LoggingFacilities.jl/workflows/CI/badge.svg)](https://github.com/tk3369/LoggingFacilities.jl/actions?query=workflow%3ACI)
 [![codecov.io](http://codecov.io/github/tk3369/LoggingFacilities.jl/coverage.svg?branch=master)](http://codecov.io/github/tk3369/LoggingFacilities.jl?branch=master)
 ![Project Status](https://img.shields.io/badge/status-experimental-red)
 
